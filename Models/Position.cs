@@ -1,7 +1,7 @@
 ﻿namespace MiXAssessment.Models;
-internal class Location
+internal class Position
 {
-    public Location(int positionId, float latitude, float longitude)
+    public Position(int positionId, float latitude, float longitude)
     {
         PositionId = positionId;
         Latitude = latitude;

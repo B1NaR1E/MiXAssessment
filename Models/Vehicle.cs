@@ -1,6 +1,6 @@
 ﻿namespace MiXAssessment.Models;
 
-public class Vehicle
+internal class Vehicle
 {
     public Vehicle(int vehicleId, string vehicleRegistration, float latitude, float longitude, ulong recordedTimeUTC)
     {

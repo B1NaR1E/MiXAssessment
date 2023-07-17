@@ -74,20 +74,20 @@ static List<Vehicle> GetVehiclesFromFile()
     return result;
 }
 
-static List<Location> InstantiateLocations()
+static List<Position> InstantiateLocations()
 {
-    return new List<Location>
+    return new List<Position>
     {
-        new Location(1, 34.544909f, -102.100843f),
-        new Location(2, 32.345544f, -99.123124f),
-        new Location(3, 33.234235f, -100.214124f),
-        new Location(4, 35.195739f, -95.348899f),
-        new Location(5, 31.895839f, -97.789573f),
-        new Location(6, 32.895839f, -101.789573f),
-        new Location(7, 34.115839f, -100.225732f),
-        new Location(8, 32.335839f, -99.992232f),
-        new Location(9, 33.535339f, -94.792232f),
-        new Location(10, 32.234235f, -100.222222f)
+        new Position(1, 34.544909f, -102.100843f),
+        new Position(2, 32.345544f, -99.123124f),
+        new Position(3, 33.234235f, -100.214124f),
+        new Position(4, 35.195739f, -95.348899f),
+        new Position(5, 31.895839f, -97.789573f),
+        new Position(6, 32.895839f, -101.789573f),
+        new Position(7, 34.115839f, -100.225732f),
+        new Position(8, 32.335839f, -99.992232f),
+        new Position(9, 33.535339f, -94.792232f),
+        new Position(10, 32.234235f, -100.222222f)
     };
 } 
 #endregion
