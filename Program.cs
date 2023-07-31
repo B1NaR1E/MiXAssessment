@@ -6,57 +6,40 @@ using System.Diagnostics;
 var stopWatch = new Stopwatch();
 var locations = InstantiateLocations();
 var tree = new KdBush(2);
+long totalTime  = 0;
 
 try
 {
-    Console.WriteLine("Loading vehicles into KD Tree.\n");
+    Console.WriteLine("Loading vehicles into K Dimentional Tree.\n");
 
     stopWatch.Start();
 
-    var test = LoadDataIntoKdTree();
+    LoadDataIntoKdTree();
+
+    stopWatch.Stop();
+    totalTime += stopWatch.ElapsedMilliseconds;
+    Console.WriteLine($"Data loaded. Time Elapsed: {stopWatch.ElapsedMilliseconds} ms.\n");
+
+    Console.WriteLine("Starting Nearest Neighbors algorithm.\n");
+
+    stopWatch.Restart();
+
+    foreach (var location in locations)
+    {
+        var vehicle = tree.NearestNeighbors(new double[] { location.Coordinates.Longitude, location.Coordinates.Latitude }, 1).FirstOrDefault();
+        Console.WriteLine($"The closest vehicle to position: {location.PositionId} is vehicleId: {vehicle!.Item2}. With Distance: {vehicle!.Item1} m");
+    }
 
     stopWatch.Stop();
 
-    Console.WriteLine($"Data loaded. Total Time:{stopWatch.ElapsedMilliseconds}.\n");
+    totalTime += stopWatch.ElapsedMilliseconds;
 
-    //if (vehicles.Count != 0)
-    {
-        Console.WriteLine("Starting Nearest Neighbors algorithm.\n");
-        stopWatch.Restart();
+    Console.WriteLine();
 
-        foreach (var location in locations)
-        {
-            var vehicle = tree.NearestNeighbors2(new double[] { location.Coordinates.Longitude, location.Coordinates.Latitude }, 1).FirstOrDefault();
-            Console.WriteLine($"The closest vehicle to position: {location.PositionId} is vehicleId: {vehicle!.Item2}.");
-        }
+    Console.WriteLine($"Algorithm completed. Time Elapsed: {stopWatch.ElapsedMilliseconds} ms.\n");
 
-        stopWatch.Stop();
+    Console.WriteLine($"Total Time(s): {totalTime / 1000} s.\nTotal Time(ms): {totalTime} ms.");
 
-        Console.WriteLine();
-
-        Console.WriteLine($"Algorithm completed. Total time elapsed: {stopWatch.ElapsedMilliseconds} ms.\n\n\n");
-
-        Console.WriteLine("Starting brute force algorithm.\n");
-
-        stopWatch.Restart();
-
-        foreach (var location in locations)
-        {
-            var vehicle = test
-                    .OrderBy(x =>
-                    ((location.Coordinates.Latitude - x.Latitude) * (location.Coordinates.Latitude - x.Latitude)) +
-                    ((location.Coordinates.Longitude - x.Longitude) * (location.Coordinates.Longitude - x.Longitude)))
-                    .First();
-
-            Console.WriteLine($"The closest vehicle to position: {location.PositionId} is vehicleId: {vehicle!.VehicleId}.");
-        }
-
-        stopWatch.Stop();
-
-        Console.WriteLine();
-
-        Console.WriteLine($"Algorithm completed. Total time elapsed: {stopWatch.ElapsedMilliseconds} ms.\n\n\n");
-    }
 }
 catch (Exception ex)
 {
@@ -65,17 +48,15 @@ catch (Exception ex)
 
 #region Helper Methods
 
-List<Vehicle> LoadDataIntoKdTree()
+// This method takes on average 10 seconds to read all the data and build the K Dimentional Tree. Need to find a way to speed this method up.
+void LoadDataIntoKdTree()
 {
-    List<double[]> data = new List<double[]>();
-    List<int> nodes = new List<int>();
-    List<Vehicle> result = new List<Vehicle>();
+    var result = new List<Vehicle>();
 
     if (!File.Exists("VehiclePositions.dat"))
     {
         Console.WriteLine($"The data file was not found.");
     }
-
 
     var dataBytes = File.ReadAllBytes("VehiclePositions.dat");
 
@@ -91,24 +72,10 @@ List<Vehicle> LoadDataIntoKdTree()
                 var lon = reader.ReadSingle();
                 var time = reader.ReadUInt64();
 
-                data.Add(new double[] { lon, lat });
-                nodes.Add(id);
-                result.Add(new Vehicle(id, lon, lat));
-                if (data.Count == 200000)
-                { 
-
-                    tree.Insert(data.ToArray(), nodes.ToArray()); 
-                    data.Clear();
-                    nodes.Clear();
-
-                }
+                tree.InsertRecord(new double[] { lon, lat }, id);
             }
         }
     }
-
-    //tree.LoadData(data.Take(10).ToArray(), nodes.Take(10).ToArray());
-
-    return result;
 }
 
 List<Position> InstantiateLocations()
