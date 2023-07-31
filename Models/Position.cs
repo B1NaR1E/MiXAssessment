@@ -1,14 +1,12 @@
 ﻿namespace MiXAssessment.Models;
 internal class Position
 {
-    public Position(int positionId, float latitude, float longitude)
+    public Position(int positionId, double latitude, double longitude)
     {
         PositionId = positionId;
-        Latitude = latitude;
-        Longitude = longitude;
+        Coordinates = new Coordinate(latitude, longitude);
     }
 
     public int PositionId { get; private set; }
-    public float Latitude { get; private set; }
-    public float Longitude { get; private set; }
+    public Coordinate Coordinates { get; private set; }
 }
