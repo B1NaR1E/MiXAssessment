@@ -1,80 +1,117 @@
-﻿using MiXAssessment.Extentions;
+﻿using MiXAssessment;
+using MiXAssessment.Extentions;
 using MiXAssessment.Models;
 using System.Diagnostics;
-using System.Text;
 
 var stopWatch = new Stopwatch();
 var locations = InstantiateLocations();
+var tree = new KdBush(2);
 
 try
 {
-    Console.WriteLine("Loading vehicle locations into memory.\n");
+    Console.WriteLine("Loading vehicles into KD Tree.\n");
 
-    var vehicles = GetVehiclesFromFile();
+    stopWatch.Start();
 
-    if (vehicles.Count != 0)
+    var test = LoadDataIntoKdTree();
+
+    stopWatch.Stop();
+
+    Console.WriteLine($"Data loaded. Total Time:{stopWatch.ElapsedMilliseconds}.\n");
+
+    //if (vehicles.Count != 0)
     {
-        Console.WriteLine($"Vehicles loaded. Total:{vehicles.Count()}.\n");
-
-        Console.WriteLine("Starting location algorithm.\n");
-
-        stopWatch.Start();
+        Console.WriteLine("Starting Nearest Neighbors algorithm.\n");
+        stopWatch.Restart();
 
         foreach (var location in locations)
         {
-            var vehicle = vehicles
-                .OrderBy(x =>
-                ((location.Latitude - x.Latitude) * (location.Latitude - x.Latitude)) +
-                ((location.Longitude - x.Longitude) * (location.Longitude - x.Longitude)))
-                .First();
-
-            Console.WriteLine($"The closest vehicle to position: {location.PositionId} is vehicleId: {vehicle.VehicleId}, Registration No: {vehicle.VehicleRegistration}.");
+            var vehicle = tree.NearestNeighbors2(new double[] { location.Coordinates.Longitude, location.Coordinates.Latitude }, 1).FirstOrDefault();
+            Console.WriteLine($"The closest vehicle to position: {location.PositionId} is vehicleId: {vehicle!.Item2}.");
         }
 
         stopWatch.Stop();
 
         Console.WriteLine();
 
-        Console.WriteLine($"Algorithm completed. Total time elapsed: {stopWatch.ElapsedMilliseconds} ms.");
+        Console.WriteLine($"Algorithm completed. Total time elapsed: {stopWatch.ElapsedMilliseconds} ms.\n\n\n");
+
+        Console.WriteLine("Starting brute force algorithm.\n");
+
+        stopWatch.Restart();
+
+        foreach (var location in locations)
+        {
+            var vehicle = test
+                    .OrderBy(x =>
+                    ((location.Coordinates.Latitude - x.Latitude) * (location.Coordinates.Latitude - x.Latitude)) +
+                    ((location.Coordinates.Longitude - x.Longitude) * (location.Coordinates.Longitude - x.Longitude)))
+                    .First();
+
+            Console.WriteLine($"The closest vehicle to position: {location.PositionId} is vehicleId: {vehicle!.VehicleId}.");
+        }
+
+        stopWatch.Stop();
+
+        Console.WriteLine();
+
+        Console.WriteLine($"Algorithm completed. Total time elapsed: {stopWatch.ElapsedMilliseconds} ms.\n\n\n");
     }
 }
 catch (Exception ex)
 {
     Console.WriteLine($"An unexpected error has occurred. Message: {ex.Message}");
-} 
+}
 
 #region Helper Methods
 
-static List<Vehicle> GetVehiclesFromFile()
+List<Vehicle> LoadDataIntoKdTree()
 {
+    List<double[]> data = new List<double[]>();
+    List<int> nodes = new List<int>();
     List<Vehicle> result = new List<Vehicle>();
 
-    if(!File.Exists("VehiclePositions.dat"))
+    if (!File.Exists("VehiclePositions.dat"))
     {
         Console.WriteLine($"The data file was not found.");
-        return result;
     }
 
-    using (FileStream fileStream = File.Open("VehiclePositions.dat", FileMode.Open))
+
+    var dataBytes = File.ReadAllBytes("VehiclePositions.dat");
+
+    using (var stream = new MemoryStream(dataBytes))
     {
-        using (System.IO.BinaryReader reader = new System.IO.BinaryReader(fileStream, Encoding.UTF8))
+        using (System.IO.BinaryReader reader = new System.IO.BinaryReader(stream))
         {
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                result.Add(new Vehicle(
-                    reader.ReadInt32(),
-                    reader.ReadAscii(),
-                    reader.ReadSingle(),
-                    reader.ReadSingle(),
-                    reader.ReadUInt64()));
+                var id = reader.ReadInt32();
+                var reg = reader.ReadAscii();
+                var lat = reader.ReadSingle();
+                var lon = reader.ReadSingle();
+                var time = reader.ReadUInt64();
+
+                data.Add(new double[] { lon, lat });
+                nodes.Add(id);
+                result.Add(new Vehicle(id, lon, lat));
+                if (data.Count == 200000)
+                { 
+
+                    tree.Insert(data.ToArray(), nodes.ToArray()); 
+                    data.Clear();
+                    nodes.Clear();
+
+                }
             }
         }
     }
 
+    //tree.LoadData(data.Take(10).ToArray(), nodes.Take(10).ToArray());
+
     return result;
 }
 
-static List<Position> InstantiateLocations()
+List<Position> InstantiateLocations()
 {
     return new List<Position>
     {
@@ -89,6 +126,7 @@ static List<Position> InstantiateLocations()
         new Position(9, 33.535339f, -94.792232f),
         new Position(10, 32.234235f, -100.222222f)
     };
-} 
+}
+
 #endregion
 
