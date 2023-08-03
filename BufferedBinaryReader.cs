@@ -82,20 +82,17 @@ namespace MiXAssessment
 
         public string ReadAscii()
         {
-            //List<byte> tempBuffer = new List<byte>();
+            List<byte> tempBuffer = new List<byte>();
 
-            //int b;
-            //int index = _bufferOffset;
-            //while ((b = (int)_buffer[index]) != 0x00)
-            //{
-            //    tempBuffer.Add((byte)b);
-            //    ++index;
-            //}
-            //_bufferOffset += tempBuffer.Count + 1;
-            var tempBuffer = new byte[11];
+            int b;
+            int index = _bufferOffset;
+            while ((b = (int)_buffer[index]) != 0x00)
+            {
+                tempBuffer.Add((byte)b);
+                ++index;
+            }
+            _bufferOffset += tempBuffer.Count + 1;
 
-            Buffer.BlockCopy(_buffer, _bufferOffset, tempBuffer, 0, tempBuffer.Length);
-            _bufferOffset += tempBuffer.Length + 1;
             return Encoding.ASCII.GetString(tempBuffer.ToArray());
         }
 

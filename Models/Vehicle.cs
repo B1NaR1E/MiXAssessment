@@ -1,19 +1,19 @@
 ﻿
+using System.Runtime.InteropServices;
+
 namespace MiXAssessment.Models;
 
-internal class Vehicle
+[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Ansi)]
+internal struct Vehicle
 {
-    public Vehicle(int vehicleId, double latitude, double longitude)
-    {
-        VehicleId = vehicleId;
-        Latitude = latitude;
-        Longitude = longitude;
-    }
-
     public int VehicleId { get; set; }
 
-    public double Latitude { get; private set; }
+    public string VehicleRegistration { get; set; }
 
-    public double Longitude { get; private set; }
+    public float Latitude { get; set; }
+
+    public float Longitude { get; set; }
+
+    public ulong RecordedTimeUTC { get; set; }
 }
 
